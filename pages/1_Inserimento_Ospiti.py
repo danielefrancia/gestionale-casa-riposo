@@ -26,7 +26,7 @@ if submitted:
         "Data nascita": str(data_nascita), "Camera": camera, 
         "Nome Familiare": nome_fam, "Tel familiare": tel_fam, "Note": note
     }])
-    df_esistente = conn.read(worksheet="Ospiti")
+    df_esistente = conn.read(worksheet="Ospiti", ttl=0)
     aggiornato = pd.concat([df_esistente, nuovo_dato], ignore_index=True)
     conn.update(worksheet="Ospiti", data=aggiornato)
     st.success("Ospite salvato!")
