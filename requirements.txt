@@ -1,3 +1,18 @@
 streamlit
 st-gsheets-connection
 pandas
+from fpdf import FPDF
+def genera_pdf(dataframe):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Report Terapie Giornaliere", ln=True, align='C')
+    for i in dataframe.index:
+        testo = f"{dataframe.loc[i, 'Farmaco']} - {dataframe.loc[i, 'Orario']} - {dataframe.loc[i, 'Stato']}"
+        pdf.cell(200, 10, txt=testo, ln=True)
+    return pdf.output(dest='S').encode('latin-1')
+
+# Pulsante Download
+if st.button("Scarica Report PDF"):
+    pdf_bytes = genera_pdf(df)
+    st.download_button("Clicca per scaricare", pdf_bytes, "report_terapie.pdf", "application/pdf")
