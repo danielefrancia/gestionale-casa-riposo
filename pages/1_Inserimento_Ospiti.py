@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_gsheets import GSheetsConnection
+import pandas as pd
 
 st.title("➕ Aggiungi Nuovo Ospite")
 
@@ -13,7 +14,15 @@ with st.form("form_ospiti"):
     submitted = st.form_submit_button("Salva Ospite")
 
 if submitted:
-    nuovo_ospite = {"Nome": nome, "Cognome": cognome, "Camera": camera, "Nome_Familiare": familiare}
-    # Qui aggiungiamo i dati al foglio "Ospiti"
-    conn.update(worksheet="Ospiti", data=nuovo_ospite)
-    st.success(f"Ospite {nome} {cognome} aggiunto con successo!")
+    # Creiamo un DataFrame con i nuovi dati
+    nuovo_dato = pd.DataFrame([{
+        "Nome": nome, 
+        "Cognome": cognome, 
+        "Camera": camera, 
+        "Nome_Familiare": familiare
+    }])
+    
+    # Aggiungiamo i dati in coda al foglio "Ospiti"
+    conn.append(worksheet="Ospiti", data=nuovo_dato)
+    
+    st.success(f"Ospite {nome} {cognome} salvato correttamente su Google Sheets!")
