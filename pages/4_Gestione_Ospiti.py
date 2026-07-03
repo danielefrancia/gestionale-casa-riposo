@@ -8,6 +8,26 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # Leggiamo i dati sempre freschi
 df = conn.read(worksheet="Ospiti", ttl=0)
 
+# Pulizia: rimuoviamo eventuali righe dove l'ID è vuoto o None per evitare errori
+df = df.dropna(subset=['ID'])
+
+# 1. Selezione ospite tramite menu
+id_selezionato = st.selectbox("Seleziona ID ospite da modificare", df['ID'].unique())
+
+if id_selezionato:
+    # Filtriamo i dati
+    mask = df['ID'] == id_selezionato
+    df_filtrato = df[mask]
+    
+    # CONTROLLO DI SICUREZZA: verifichiamo che il filtro abbia trovato qualcosa
+    if not df_filtrato.empty:
+        ospite_data = df_filtrato.iloc[0]
+        
+        with st.form("form_modifica"):
+            st.subheader(f"Modifica dati di {ospite_data['Nome']} {ospite_data['Cognome']}")
+            
+            # ... resto del form uguale a prima ...
+
 # 1. Selezione ospite tramite menu
 id_selezionato = st.selectbox("Seleziona ID ospite da modificare", df['ID'].unique())
 
