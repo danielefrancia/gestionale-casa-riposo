@@ -17,13 +17,19 @@ with st.form("form_ospiti", clear_on_submit=True):
     submitted = st.form_submit_button("Salva Ospite")
 
 if submitted:
-    # Creiamo la nuova riga
+    # Creiamo una riga che contiene TUTTE le colonne del foglio
     nuovo_dato = pd.DataFrame([{
+        "ID": "",             # Lascialo vuoto o metti un numero
         "Nome": nome, 
         "Cognome": cognome, 
+        "Data nascita": "",   # Aggiungi questa colonna
         "Camera": camera, 
-        "Nome_Familiare": familiare
+        "Nome Familiare": familiare, # Deve corrispondere esattamente al testo nel foglio
+        "Tel familiare": "",  # Aggiungi questa colonna
+        "Note": ""            # Aggiungi questa colonna
     }])
+    
+    # ... resto del codice uguale
     
     # Uniamo
     aggiornato = pd.concat([df_esistente, nuovo_dato], ignore_index=True)
