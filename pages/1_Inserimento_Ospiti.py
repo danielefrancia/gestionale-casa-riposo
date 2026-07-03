@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
+from streamlit_gsheets import GSheetsConnection # Fondamentale
 
 st.title("➕ Aggiungi Nuovo Ospite")
 
-# Connessione
-conn = st.connection("gsheets")
+# Dichiara esplicitamente il tipo di connessione
+conn = st.connection("gsheets", type=GSheetsConnection)
 
 # Leggiamo i dati esistenti
 df_esistente = conn.read(worksheet="Ospiti", usecols=[0, 1, 2, 3], ttl=0)
