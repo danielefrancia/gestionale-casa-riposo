@@ -5,7 +5,7 @@ st.title("📋 Consultazione Ospiti")
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # Leggi dati
-df = conn.read(worksheet="Ospiti")
+df = conn.read(worksheet="Ospiti", ttl=0)
 
 # Visualizzazione
 st.dataframe(df, use_container_width=True)
