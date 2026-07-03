@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from st_gsheets_connection import GSheetsConnection
+from streamlit_gsheets import GSheetsConnection
 from datetime import datetime
 from fpdf import FPDF
 
