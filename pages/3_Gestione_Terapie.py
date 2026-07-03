@@ -8,7 +8,7 @@ from fpdf import FPDF
 
 # 1. Carica i dati
 conn = st.connection("gsheets", type=GSheetsConnection)
-df = conn.read(worksheet="NOME_DEL_TUO_FOGLIO")
+df = conn.read(worksheet="Terapie")
 
 # 2. LOGICA DI ORDINAMENTO DINAMICO
 # Converti in tempo
