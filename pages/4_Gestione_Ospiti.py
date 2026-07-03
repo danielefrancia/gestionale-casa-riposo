@@ -2,47 +2,31 @@ import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 
-st.title("📋 Consultazione e Modifica Ospiti")
+st.title("📋 Consultazione, Modifica e Cancellazione")
 conn = st.connection("gsheets", type=GSheetsConnection)
-
-# Leggiamo i dati sempre freschi
 df = conn.read(worksheet="Ospiti", ttl=0)
 
-# Pulizia: rimuoviamo eventuali righe dove l'ID è vuoto o None per evitare errori
-df = df.dropna(subset=['ID'])
-
-# 1. Selezione ospite tramite menu
-id_selezionato = st.selectbox("Seleziona ID ospite da modificare", df['ID'].unique())
+id_selezionato = st.selectbox("Seleziona ID ospite", df['ID'].unique())
 
 if id_selezionato:
-    # Filtriamo i dati dell'ospite scelto
     df_filtrato = df[df['ID'] == id_selezionato]
-    
     if not df_filtrato.empty:
-        ospite_data = df_filtrato.iloc[0]
+        ospite = df_filtrato.iloc[0]
         
-        with st.form("form_modifica"):
-            st.subheader(f"Modifica dati di {ospite_data['Nome']} {ospite_data['Cognome']}")
-            
-            # Campi pre-compilati con i dati attuali
-            nuovo_nome = st.text_input("Nome", value=str(ospite_data['Nome']))
-            nuovo_cognome = st.text_input("Cognome", value=str(ospite_data['Cognome']))
-            nuova_camera = st.text_input("Camera", value=str(ospite_data['Camera']))
-            nuovo_tel = st.text_input("Tel familiare", value=str(ospite_data['Tel familiare']))
-            
-            btn_salva = st.form_submit_button("Salva modifiche")
+        # Form di modifica
+        with st.form("modifica_form"):
+            nuovo_nome = st.text_input("Nome", value=str(ospite['Nome']))
+            # ... (aggiungi qui gli altri campi che vuoi modificare)
+            if st.form_submit_button("Salva Modifiche"):
+                df.loc[df['ID'] == id_selezionato, 'Nome'] = nuovo_nome
+                conn.update(worksheet="Ospiti", data=df)
+                st.rerun()
 
-        if btn_salva:
-            # Aggiorniamo il DataFrame locale
-            df.loc[df['ID'] == id_selezionato, ['Nome', 'Cognome', 'Camera', 'Tel familiare']] = [
-                nuovo_nome, nuovo_cognome, nuova_camera, nuovo_tel
-            ]
-            
-            # Salviamo su Google Sheets sovrascrivendo il foglio
-            conn.update(worksheet="Ospiti", data=df)
-            st.success("Modifiche salvate con successo!")
+        # Pulsante Cancellazione
+        if st.button("⚠️ CANCELLA OSPITE DEFINITIVAMENTE"):
+            df_pulito = df[df['ID'] != id_selezionato]
+            conn.update(worksheet="Ospiti", data=df_pulito)
+            st.warning("Ospite rimosso dal database.")
             st.rerun()
 
-# Visualizzazione tabella
-st.divider()
 st.dataframe(df, use_container_width=True)
