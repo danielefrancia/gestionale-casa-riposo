@@ -33,9 +33,13 @@ df = df.sort_values(by='distanza').drop(columns=['distanza', 'Orario_dt'])
 st.title("Gestione Terapie")
 st.dataframe(df)
 
-# 4. Genera il PDF usando il df già ordinato
-st.divider()
+# --- CODICE PULITO E CORRETTO ---
+
+# 1. Calcola il PDF una sola volta
 pdf_bytes = genera_pdf(df)
+
+# 2. Crea il pulsante di download una sola volta
+st.divider()
 st.download_button(
     label="📥 Scarica Report PDF",
     data=pdf_bytes,
