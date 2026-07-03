@@ -6,6 +6,9 @@ st.title("➕ Aggiungi Nuovo Ospite")
 
 conn = st.connection("gsheets", type=GSheetsConnection)
 
+# Leggiamo i dati esistenti per mantenere la struttura
+df_esistente = conn.read(worksheet="Ospiti")
+
 with st.form("form_ospiti"):
     nome = st.text_input("Nome")
     cognome = st.text_input("Cognome")
@@ -14,7 +17,7 @@ with st.form("form_ospiti"):
     submitted = st.form_submit_button("Salva Ospite")
 
 if submitted:
-    # Creiamo un DataFrame con i nuovi dati
+    # Creiamo una riga con i nuovi dati
     nuovo_dato = pd.DataFrame([{
         "Nome": nome, 
         "Cognome": cognome, 
@@ -22,7 +25,10 @@ if submitted:
         "Nome_Familiare": familiare
     }])
     
-    # Aggiungiamo i dati in coda al foglio "Ospiti"
-    conn.append(worksheet="Ospiti", data=nuovo_dato)
+    # Uniamo i vecchi dati ai nuovi
+    aggiornato = pd.concat([df_esistente, nuovo_dato], ignore_index=True)
+    
+    # Sovrascriviamo il foglio con il nuovo DataFrame completo
+    conn.write(worksheet="Ospiti", data=aggiornato)
     
     st.success(f"Ospite {nome} {cognome} salvato correttamente su Google Sheets!")
