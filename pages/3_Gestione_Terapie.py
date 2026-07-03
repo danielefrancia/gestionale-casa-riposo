@@ -29,7 +29,7 @@ def genera_pdf(dataframe):
 # 2. CARICA I DATI NEL FILE ATTUALE
 # Devi collegarti al database qui, esattamente come facevi in app.py
 conn = st.connection("gsheets", type=GSheetsConnection)
-df = conn.read(worksheet="NOME_DEL_TUO_FOGLIO") # Assicurati di mettere il nome corretto
+df = conn.read(worksheet="Terapie") # Assicurati di mettere il nome corretto
 
 # 3. Ora puoi chiamare la funzione in sicurezza
 st.title("Gestione Terapie")
