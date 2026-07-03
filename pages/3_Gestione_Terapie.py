@@ -3,24 +3,20 @@ import pandas as pd
 from streamlit_gsheets import GSheetsConnection
 from fpdf import FPDF
 
-# ... (il resto del tuo codice di lettura dati e gestione stato) ...
-
-# Funzione per generare il PDF
+# 1. Definisci la funzione di generazione (che hai già)
 def genera_pdf(dataframe):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
     pdf.cell(200, 10, txt="Report Terapie Giornaliere", ln=True, align='C')
-    pdf.ln(10) # Spazio dopo il titolo
+    pdf.ln(10)
     
-    # Intestazione tabella nel PDF
     pdf.set_font("Arial", 'B', 10)
     pdf.cell(60, 10, "Farmaco", border=1)
     pdf.cell(40, 10, "Orario", border=1)
     pdf.cell(40, 10, "Stato", border=1)
     pdf.ln()
     
-    # Dati
     pdf.set_font("Arial", size=10)
     for i in dataframe.index:
         pdf.cell(60, 10, str(dataframe.loc[i, 'Farmaco']), border=1)
@@ -30,9 +26,20 @@ def genera_pdf(dataframe):
     
     return pdf.output(dest='S').encode('latin-1')
 
-# --- IL PULSANTE DOWNLOAD DEVE STARE FUORI DAGLI ALTRI IF ---
+# 2. CARICA I DATI NEL FILE ATTUALE
+# Devi collegarti al database qui, esattamente come facevi in app.py
+conn = st.connection("gsheets", type=GSheetsConnection)
+df = conn.read(worksheet="NOME_DEL_TUO_FOGLIO") # Assicurati di mettere il nome corretto
+
+# 3. Ora puoi chiamare la funzione in sicurezza
+st.title("Gestione Terapie")
+st.dataframe(df) # Esempio di visualizzazione
+
 st.divider()
+
+# Genera il PDF usando il 'df' appena caricato
 pdf_bytes = genera_pdf(df)
+
 st.download_button(
     label="📥 Scarica Report PDF",
     data=pdf_bytes,
