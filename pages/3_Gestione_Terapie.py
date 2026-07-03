@@ -42,12 +42,3 @@ st.download_button(
     file_name="report_terapie.pdf",
     mime="application/pdf"
 )
-# Genera il PDF usando il 'df' appena caricato
-pdf_bytes = genera_pdf(df)
-
-st.download_button(
-    label="📥 Scarica Report PDF",
-    data=pdf_bytes,
-    file_name="report_terapie.pdf",
-    mime="application/pdf"
-)
