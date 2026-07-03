@@ -43,6 +43,23 @@ if not df_terapie.empty:
 else:
     st.info("Nessuna terapia programmata.")
 
+# --- LOGICA URGENZA MAGAZZINO ---
+st.subheader("🚨 Alert Magazzino: Articoli in esaurimento")
+
+# Leggi il magazzino
+df_mag = conn.read(worksheet="Magazzino")
+
+# Filtra solo gli articoli dove la quantità è <= soglia minima
+df_urgenti = df_mag[df_mag['Quantità'] <= df_mag['Soglia_Minima']]
+
+if not df_urgenti.empty:
+    # Mostra gli articoli critici
+    st.error("I seguenti articoli necessitano di un ordine immediato:")
+    st.table(df_urgenti[['Nome_Farmaco', 'Quantità', 'Soglia_Minima']])
+else:
+    st.success("✅ Tutte le scorte sono sufficienti.")
+    
+
 # 4. Accesso Rapido
 st.sidebar.header("Navigazione Rapida")
 st.sidebar.page_link("app.py", label="Dashboard")
