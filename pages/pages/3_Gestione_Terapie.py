@@ -1,23 +1,41 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
+from fpdf import FPDF
 
-st.title("📋 Gestione e Stato Terapie")
-conn = st.connection("gsheets", type=GSheetsConnection)
+# ... (il resto del tuo codice di lettura dati e gestione stato) ...
 
-df = conn.read(worksheet="Terapie", ttl=0)
+# Funzione per generare il PDF
+def genera_pdf(dataframe):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+    pdf.cell(200, 10, txt="Report Terapie Giornaliere", ln=True, align='C')
+    pdf.ln(10) # Spazio dopo il titolo
+    
+    # Intestazione tabella nel PDF
+    pdf.set_font("Arial", 'B', 10)
+    pdf.cell(60, 10, "Farmaco", border=1)
+    pdf.cell(40, 10, "Orario", border=1)
+    pdf.cell(40, 10, "Stato", border=1)
+    pdf.ln()
+    
+    # Dati
+    pdf.set_font("Arial", size=10)
+    for i in dataframe.index:
+        pdf.cell(60, 10, str(dataframe.loc[i, 'Farmaco']), border=1)
+        pdf.cell(40, 10, str(dataframe.loc[i, 'Orario']), border=1)
+        pdf.cell(40, 10, str(dataframe.loc[i, 'Stato']), border=1)
+        pdf.ln()
+    
+    return pdf.output(dest='S').encode('latin-1')
 
-# Selezione terapia da aggiornare
-idx_da_aggiornare = st.selectbox("Seleziona la terapia da gestire", df.index, format_func=lambda x: f"{df.loc[x, 'Farmaco']} - {df.loc[x, 'Orario']}")
-
-col1, col2 = st.columns(2)
-with col1:
-    nuovo_stato = st.selectbox("Cambia Stato", ["Da fare", "Somministrato"])
-with col2:
-    if st.button("Aggiorna Stato"):
-        df.loc[idx_da_aggiornare, 'Stato'] = nuovo_stato
-        conn.update(worksheet="Terapie", data=df)
-        st.success("Stato aggiornato!")
-        st.rerun()
-
-st.dataframe(df, use_container_width=True)
+# --- IL PULSANTE DOWNLOAD DEVE STARE FUORI DAGLI ALTRI IF ---
+st.divider()
+pdf_bytes = genera_pdf(df)
+st.download_button(
+    label="📥 Scarica Report PDF",
+    data=pdf_bytes,
+    file_name="report_terapie.pdf",
+    mime="application/pdf"
+)
