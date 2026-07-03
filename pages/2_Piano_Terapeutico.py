@@ -1,55 +1,60 @@
 import streamlit as st
 import pandas as pd
 from streamlit_gsheets import GSheetsConnection
+from fpdf import FPDF
 
-st.title("💊 Inserimento Piano Terapeutico")
+st.title("📄 Consultazione Piano Terapeutico")
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# Leggi ospiti e gestisci il caso in cui il foglio sia vuoto
+# 1. Carichiamo dati
+df_terapie = conn.read(worksheet="Terapie", ttl=0)
 df_ospiti = conn.read(worksheet="Ospiti", ttl=0)
 
-if df_ospiti.empty:
-    st.error("Nessun ospite trovato nel database. Inserisci prima un ospite nella pagina dedicata.")
-    st.stop() # Ferma l'esecuzione della pagina
+# 2. Selezione Ospite
+lista_ospiti = df_ospiti['Nome'] + " " + df_ospiti['Cognome'] + " (ID: " + df_ospiti['ID'].astype(str) + ")"
+ospite_scelto = st.selectbox("Seleziona l'ospite per visualizzare il piano", lista_ospiti)
 
-# Assicuriamoci che l'ID sia stringa
-df_ospiti['ID'] = df_ospiti['ID'].astype(str)
-
-# Creazione lista con controllo sui dati mancanti
-lista_nomi = (df_ospiti['Nome'].fillna('') + " " + 
-              df_ospiti['Cognome'].fillna('') + " (ID: " + 
-              df_ospiti['ID'] + ")")
-
-ospite_selezionato = st.selectbox("Seleziona Ospite", lista_nomi)
-
-# Eseguiamo lo split solo se ospite_selezionato non è None
-if ospite_selezionato and "(ID: " in ospite_selezionato:
-    id_ospite = ospite_selezionato.split("(ID: ")[1].replace(")", "")
-else:
-    id_ospite = None
-
-with st.form("form_terapia", clear_on_submit=True):
-    farmaco = st.text_input("Nome Farmaco")
-    dosaggio = st.text_input("Dosaggio")
-    orario = st.time_input("Orario Somministrazione")
-    note_terapia = st.text_area("Note")
-    submitted = st.form_submit_button("Salva Terapia")
-
-if submitted:
-    if not id_ospite:
-        st.error("Seleziona un ospite valido!")
-    else:
-        # Il resto del codice di salvataggio rimane uguale
-        nuova_terapia = pd.DataFrame([{
-            "ID Ospite": id_ospite,
-            "Farmaco": farmaco,
-            "Dosaggio": dosaggio,
-            "Orario": str(orario),
-            "Stato": "Da fare",
-            "Note": note_terapia
-        }])
+if ospite_scelto:
+    id_ospite = ospite_scelto.split("(ID: ")[1].replace(")", "")
+    
+    # Filtriamo le terapie per l'ospite
+    piano_ospite = df_terapie[df_terapie['ID Ospite'].astype(str) == id_ospite]
+    
+    if not piano_ospite.empty:
+        st.subheader(f"Piano Terapeutico per {ospite_scelto}")
+        st.dataframe(piano_ospite, use_container_width=True)
         
-        df_terapie = conn.read(worksheet="Terapie", ttl=0)
-        aggiornato = pd.concat([df_terapie, nuova_terapia], ignore_index=True)
-        conn.update(worksheet="Terapie", data=aggiornato)
-        st.success("Terapia salvata!")
+        # 3. Funzione Stampa/PDF
+        def genera_pdf_ospite(df, nome_ospite):
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", 'B', 16)
+            pdf.cell(200, 10, txt=f"Piano Terapeutico: {nome_ospite}", ln=True, align='C')
+            pdf.ln(10)
+            
+            # Intestazione tabella
+            pdf.set_font("Arial", 'B', 12)
+            pdf.cell(60, 10, "Farmaco", border=1)
+            pdf.cell(40, 10, "Dosaggio", border=1)
+            pdf.cell(40, 10, "Orario", border=1)
+            pdf.ln()
+            
+            # Dati
+            pdf.set_font("Arial", size=12)
+            for i in df.index:
+                pdf.cell(60, 10, str(df.loc[i, 'Farmaco']), border=1)
+                pdf.cell(40, 10, str(df.loc[i, 'Dosaggio']), border=1)
+                pdf.cell(40, 10, str(df.loc[i, 'Orario']), border=1)
+                pdf.ln()
+            return pdf.output(dest='S').encode('latin-1')
+
+        # Pulsante Download PDF
+        pdf_bytes = genera_pdf_ospite(piano_ospite, ospite_scelto)
+        st.download_button(
+            label="📥 Scarica Piano in PDF",
+            data=pdf_bytes,
+            file_name=f"Piano_Terapeutico_{id_ospite}.pdf",
+            mime="application/pdf"
+        )
+    else:
+        st.info("Nessuna terapia registrata per questo ospite.")
